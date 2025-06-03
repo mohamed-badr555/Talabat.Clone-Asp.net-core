@@ -8,6 +8,7 @@ using Talabat.Core.Entities;
 using Talabat.Core.Entities.Order_Aggregate;
 using Talabat.Core.Repositories.Contract;
 using Talabat.Core.Services.Contract;
+using Talabat.Core.Specifications.Order_Specs;
 
 namespace Talabat.Services
 {
@@ -42,7 +43,7 @@ namespace Talabat.Services
                 var Repository = _unitofWork.Repository<Product>();
                 foreach (var item in basket.Items)
                 {
-                    var product = await Repository.GetAsync(item.Id);
+                    var product = await Repository.GetById(item.Id);
                     var productItemOrdered = new ProductItemOrdered(item.Id, product.Name, product.PictureUrl);
                     var orderItem = new OrderItem(productItemOrdered, item.Quantity, product.Price);
                     orderItems.Add(orderItem);
@@ -52,7 +53,7 @@ namespace Talabat.Services
             //Calculate SubTotal
             var subtotal = orderItems.Sum(orderItem => orderItem.Quantity * orderItem.Price);
             //Get Delivery Method From DeliveryMethods Repo
-            var deliveryMethod = await _unitofWork.Repository<DeliveryMethod>().GetAsync(deliveryMethodId);
+            var deliveryMethod = await _unitofWork.Repository<DeliveryMethod>().GetById(deliveryMethodId);
             // Create Order
             var order = new Order(buyerEmail, shippingAddress, deliveryMethod, orderItems, subtotal);
             await _unitofWork.Repository<Order>().AddAsync(order);
@@ -69,14 +70,29 @@ namespace Talabat.Services
          
         }
 
-        public Task<Order> GetOrderByIdForUserAsync(int orderId, string buyerEmail)
+        public async Task<IReadOnlyList<Order>> GetOrdersForUserAsync(string buyerEmail)
         {
-            throw new NotImplementedException();
+            var ordersRepo = _unitofWork.Repository<Order>();
+            var spec = new OrderSpecifications(buyerEmail);
+            var orders = await ordersRepo.GetAllWithSpecAsync(spec);
+
+            return orders;
+
+        }
+        public Task<Order?> GetOrderByIdForUserAsync(int orderId, string buyerEmail)
+        {
+
+            var orderRepo = _unitofWork.Repository<Order>();
+
+            var orderSpec = new OrderSpecifications(orderId, buyerEmail);
+
+            var order = orderRepo.GetWithSpecAsync(orderSpec);
+
+
+            return order;
         }
 
-        public Task<IReadOnlyList<Order>> GetOrdersForUserAsync(string buyerEmail)
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<IReadOnlyList<DeliveryMethod>> GetDeliveryMethodsAsync()
+      => await _unitofWork.Repository<DeliveryMethod>().GetAllAsync();
     }
 }

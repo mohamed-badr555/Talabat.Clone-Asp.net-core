@@ -22,7 +22,7 @@ namespace Talabat.Core.Entities.Order_Aggregate
         }
 
         public string BuyerEmail { get; set; }
-        public DateTimeOffset OrderDate { get; set; }
+        public DateTimeOffset OrderDate { get; set; } = DateTimeOffset.UtcNow;
         public OrderStatus Status { get; set; } = OrderStatus.Pending;
         public Address ShippingAddress { get; set; }
 

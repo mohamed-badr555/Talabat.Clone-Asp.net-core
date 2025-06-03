@@ -21,7 +21,8 @@ namespace Talabat.API.Extensions
             services.AddScoped(typeof(IBasketRepository), typeof(BasketRepository));
             // Register ProductPictureURLResolver
             services.AddTransient<ProductPictureURLResolver>();
-           services.Configure<ApiBehaviorOptions>(options =>
+            services.AddTransient<OrderItemPictureResolver>();
+            services.Configure<ApiBehaviorOptions>(options =>
             options.InvalidModelStateResponseFactory = (actionContext) =>
             {
                 var errors = actionContext.ModelState.Where(P => P.Value.Errors.Count() > 0).
